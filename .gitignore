@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+
+# Logs e temporários
+*.log
+node_modules/
+
+# Pasta de trabalho/rascunho (não faz parte do site publicado)
+mnt/
