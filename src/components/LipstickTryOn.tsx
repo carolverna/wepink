@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useCart } from "../context/CartContext";
 import { lipShades } from "../data/catalog";
 import { INNER_LIP, loadLipLandmarker, OUTER_LIP } from "../lib/lipLandmarker";
-import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 
 const CANVAS_W = 480;
 const CANVAS_H = 640;
@@ -21,7 +20,8 @@ export default function LipstickTryOn() {
 
   const toneRef = useRef(tone);
   const opacityRef = useRef(0.55);
-  const landmarkerRef = useRef<FaceLandmarker | null>(null);
+  const videoLandmarkerRef = useRef<Awaited<ReturnType<typeof loadLipLandmarker>> | null>(null);
+  const imageLandmarkerRef = useRef<Awaited<ReturnType<typeof loadLipLandmarker>> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef(0);
   const sourceRef = useRef<HTMLVideoElement | HTMLImageElement | null>(null);
@@ -125,7 +125,7 @@ export default function LipstickTryOn() {
   function loop() {
     const ctx = canvasRef.current?.getContext("2d");
     const video = videoRef.current;
-    const landmarker = landmarkerRef.current;
+    const landmarker = videoLandmarkerRef.current;
     if (!ctx || !video || !landmarker) return;
 
     const box = drawFrame(ctx, true);
@@ -140,13 +140,25 @@ export default function LipstickTryOn() {
     frameRef.current = requestAnimationFrame(loop);
   }
 
-  async function ensureLandmarker() {
-    if (landmarkerRef.current) return landmarkerRef.current;
+  async function ensureVideoLandmarker() {
+    if (videoLandmarkerRef.current) return videoLandmarkerRef.current;
     setLoading(true);
     setHint("Carregando o provador…");
     try {
-      landmarkerRef.current = await loadLipLandmarker();
-      return landmarkerRef.current;
+      videoLandmarkerRef.current = await loadLipLandmarker("VIDEO");
+      return videoLandmarkerRef.current;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function ensureImageLandmarker() {
+    if (imageLandmarkerRef.current) return imageLandmarkerRef.current;
+    setLoading(true);
+    setHint("Carregando o provador…");
+    try {
+      imageLandmarkerRef.current = await loadLipLandmarker("IMAGE");
+      return imageLandmarkerRef.current;
     } finally {
       setLoading(false);
     }
@@ -159,7 +171,7 @@ export default function LipstickTryOn() {
     }
 
     try {
-      await ensureLandmarker();
+      await ensureVideoLandmarker();
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
       streamRef.current = stream;
       const video = videoRef.current!;
@@ -187,31 +199,36 @@ export default function LipstickTryOn() {
     setHint("Câmera fechada.");
   }
 
+  function loadImage(file: File): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = URL.createObjectURL(file);
+    });
+  }
+
   async function loadSelfie(file: File) {
     closeCamera();
-    await ensureLandmarker();
+    const landmarker = await ensureImageLandmarker();
+    const image = await loadImage(file);
 
-    const image = new Image();
-    image.onload = () => {
-      sourceRef.current = image;
-      const ctx = canvasRef.current?.getContext("2d");
-      if (!ctx) return;
+    sourceRef.current = image;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
 
-      const box = drawFrame(ctx, false);
-      const landmarker = landmarkerRef.current!;
-      const result = landmarker.detect(image);
-      const lips = extractLips(result);
+    const box = drawFrame(ctx, false);
+    const result = landmarker.detect(image);
+    const lips = extractLips(result);
 
-      if (lips) {
-        lastLipsRef.current = lips;
-        paintLips(ctx, lips, box, false);
-        setHint("Batom aplicado nos seus lábios. Troque a cor para comparar.");
-      } else {
-        lastLipsRef.current = null;
-        setHint("Não encontrei os lábios nessa foto. Tente uma selfie de frente e com boa luz.");
-      }
-    };
-    image.src = URL.createObjectURL(file);
+    if (lips) {
+      lastLipsRef.current = lips;
+      paintLips(ctx, lips, box, false);
+      setHint("Batom aplicado nos seus lábios. Troque a cor para comparar.");
+    } else {
+      lastLipsRef.current = null;
+      setHint("Não encontrei os lábios nessa foto. Tente uma selfie de frente e com boa luz.");
+    }
   }
 
   function changeOpacity(value: number) {
