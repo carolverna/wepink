@@ -41,7 +41,7 @@
   margin: 0;
 }
 html {
-  scroll-padding-top: env(safe-area-inset-top, 0px);
+  scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
 }
 body {
   background: var(--milk);
@@ -148,6 +148,11 @@ header {
   border-radius: 999px;
   padding: 0.65rem 1.2rem;
   font-weight: 700;
+}
+.cartbtn-icon {
+  display: none;
+  width: 24px;
+  height: 24px;
 }
 .pulse {
   animation: pl 0.5s;
@@ -751,7 +756,7 @@ footer a {
 
 @media (max-width: 900px) {
   .bento {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .hero,
   .lab,
@@ -760,12 +765,49 @@ footer a {
   }
 }
 @media (max-width: 520px) {
+  header {
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+  }
+  .logo {
+    font-size: 1.45rem;
+  }
+  .search {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+  }
+  .cartbtn {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin-left: auto;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .cartbtn-label {
+    display: none;
+  }
+  .cartbtn-icon {
+    display: block;
+  }
   .p.big,
   .p.wide {
     grid-column: span 2;
   }
   .p.big {
     grid-row: auto;
+  }
+}
+@media (max-width: 360px) {
+  .search {
+    display: none;
+  }
+  .foot a,
+  .go {
+    padding-inline: 0.9rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {

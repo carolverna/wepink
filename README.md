@@ -4,11 +4,19 @@ Conceito de loja de beleza em **React + TypeScript**, com um **provador de batom
 
 **Demo:** https://carolverna.github.io/wepink/
 
+## Vídeo de apresentação
+
+Propaganda vertical com gravação real do site, envio de uma foto gerada por IA, troca de tons de batom e montagem de kit.
+
+- [Assistir ao vídeo](https://carolverna.github.io/wepink/media/propaganda-wepink.mp4)
+- [Capa](public/media/capa-propaganda.jpg)
+- [Legenda para publicação](public/media/legenda-propaganda.txt)
+
 > O provador usa a câmera, que os navegadores só liberam em `https://`. Por isso ele funciona na demo publicada, e localmente através de `localhost`.
 
 ## Funcionalidades
 
-- **Provador de batom** — câmera em tempo real com a `FaceDetector API`. Quando o navegador não suporta, dois fallbacks entram no lugar: marcar os cantos da boca ou arrastar o batom. Controles de tom, tamanho e intensidade.
+- **Provador de batom** — câmera em tempo real ou envio de selfie com o MediaPipe Face Landmarker, que detecta o contorno dos lábios. Controles de tom e intensidade.
 - **Sacola** — barra de brinde progressivo, sugestão de "leve também", contagem e parcelamento calculados em tempo real, estado gerenciado por Context API.
 - **Montador de kit** — combina batom e gloss e libera um brinde.
 - **Quiz de perfume** — três perguntas que pontuam as fragrâncias e sugerem a mais compatível.
@@ -18,7 +26,7 @@ Conceito de loja de beleza em **React + TypeScript**, com um **provador de batom
 
 - React 19 + TypeScript
 - Vite
-- Canvas API, FaceDetector API, `getUserMedia`
+- Canvas API, MediaPipe Face Landmarker, `getUserMedia`
 - CSS puro (Grid, custom properties, `clamp()`)
 
 ## Estrutura
